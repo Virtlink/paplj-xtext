@@ -7,5 +7,9 @@ Bundle-SymbolicName: org.metaborg.paplj.ide; singleton:=true
 Bundle-ActivationPolicy: lazy
 Require-Bundle: org.metaborg.paplj,
  org.eclipse.xtext.ide,
- org.eclipse.xtext.xbase.ide
+ org.eclipse.xtext.xbase.ide,
+ org.antlr.runtime
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Export-Package: org.metaborg.paplj.ide.contentassist.antlr.internal,
+ org.metaborg.paplj.ide.contentassist.antlr
+

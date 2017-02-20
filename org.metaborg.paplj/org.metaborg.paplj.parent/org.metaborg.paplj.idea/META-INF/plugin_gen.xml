@@ -1,0 +1,93 @@
+<idea-plugin version="2">
+	<extensions defaultExtensionNs="org.eclipse.xtext.idea">
+		<package
+			uri="http://www.metaborg.org/paplj/Paplj"
+			class="org.metaborg.paplj.paplj.PapljPackage"
+		/>
+		<resourceFactory 
+			type="pj"
+			class="org.eclipse.xtext.resource.IResourceFactory"
+			factoryClass="org.metaborg.paplj.idea.PapljExtensionFactory"
+		/>
+		<resourceServiceProvider
+			uriExtension="pj"
+			class="org.eclipse.xtext.idea.resource.IResourceIdeaServiceProvider"
+			factoryClass="org.metaborg.paplj.idea.PapljExtensionFactory"
+		/>
+
+		<lang.setup
+			language="org.metaborg.paplj.Paplj"
+			implementationClass="org.metaborg.paplj.idea.PapljIdeaSetup"
+		/>
+	</extensions>
+
+	<extensions defaultExtensionNs="com.intellij">
+		<psi.treeChangePreprocessor implementation="org.metaborg.paplj.idea.lang.psi.PapljCodeBlockModificationListener"/>
+
+		<fileTypeFactory implementation="org.metaborg.paplj.idea.lang.PapljFileTypeFactory"/>
+		<stubElementTypeHolder class="org.metaborg.paplj.idea.lang.PapljElementTypeProvider"/>
+		<lang.ast.factory 
+			language="org.metaborg.paplj.Paplj"
+			factoryClass="org.metaborg.paplj.idea.PapljExtensionFactory"
+			implementationClass="org.eclipse.xtext.idea.lang.BaseXtextASTFactory"
+		/>
+		<lang.parserDefinition 
+			language="org.metaborg.paplj.Paplj"
+			factoryClass="org.metaborg.paplj.idea.PapljExtensionFactory"
+			implementationClass="org.metaborg.paplj.idea.lang.parser.PapljParserDefinition"
+		/>
+		<lang.findUsagesProvider 
+			language="org.metaborg.paplj.Paplj"
+			factoryClass="org.metaborg.paplj.idea.PapljExtensionFactory"
+			implementationClass="org.eclipse.xtext.idea.findusages.BaseXtextFindUsageProvider"
+		/>
+		<lang.refactoringSupport 
+			language="org.metaborg.paplj.Paplj"
+			factoryClass="org.metaborg.paplj.idea.PapljExtensionFactory"
+			implementationClass="org.eclipse.xtext.idea.refactoring.BaseXtextRefactoringSupportProvider"
+		/>
+		<lang.namesValidator 
+			language="org.metaborg.paplj.Paplj"
+			factoryClass="org.metaborg.paplj.idea.PapljExtensionFactory"
+			implementationClass="com.intellij.lang.refactoring.NamesValidator"
+		/>
+		<lang.syntaxHighlighterFactory key="org.metaborg.paplj.Paplj" implementationClass="org.metaborg.paplj.idea.highlighting.PapljSyntaxHighlighterFactory" />
+		<lang.braceMatcher 
+			language="org.metaborg.paplj.Paplj"
+			factoryClass="org.metaborg.paplj.idea.PapljExtensionFactory"
+			implementationClass="com.intellij.lang.PairedBraceMatcher"
+		/>
+		<annotator 
+			language="org.metaborg.paplj.Paplj"
+			factoryClass="org.metaborg.paplj.idea.PapljExtensionFactory"
+			implementationClass="org.eclipse.xtext.idea.annotation.IssueAnnotator"
+		/>
+		<completion.contributor language="org.metaborg.paplj.Paplj" implementationClass="org.metaborg.paplj.idea.completion.PapljCompletionContributor"/>
+		<pom.declarationSearcher implementation="org.metaborg.paplj.idea.lang.pom.PapljPomDeclarationSearcher"/>
+
+		<lang.psiStructureViewFactory 
+			language="org.metaborg.paplj.Paplj"
+			factoryClass="org.metaborg.paplj.idea.PapljExtensionFactory"
+			implementationClass="com.intellij.lang.PsiStructureViewFactory"
+		/>
+		<facetType implementation="org.metaborg.paplj.idea.facet.PapljFacetType"/>
+		<lang.documentationProvider 
+			language="org.metaborg.paplj.Paplj"
+			factoryClass="org.metaborg.paplj.idea.PapljExtensionFactory"
+			implementationClass="org.eclipse.xtext.idea.documentation.IdeaDocumentationProvider"
+		/>
+		<colorSettingsPage implementation="org.metaborg.paplj.idea.highlighting.PapljColorSettingsPage"/>
+		<highlightVisitor implementation="org.metaborg.paplj.idea.highlighting.PapljSemanticHighlightVisitor"/>
+
+		<lang.formatter 
+			language="org.metaborg.paplj.Paplj"
+			factoryClass="org.metaborg.paplj.idea.PapljExtensionFactory"
+			implementationClass="com.intellij.formatting.FormattingModelBuilder"
+		/>
+		<lang.commenter 
+			language="org.metaborg.paplj.Paplj"
+			factoryClass="org.metaborg.paplj.idea.PapljExtensionFactory"
+			implementationClass="com.intellij.lang.CodeDocumentationAwareCommenter"
+		/>
+	</extensions>
+</idea-plugin>
