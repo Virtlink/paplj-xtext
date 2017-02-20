@@ -14,11 +14,11 @@ import org.eclipse.jetty.webapp.WebXmlConfiguration
 
 /**
  * This program starts an HTTP server for testing the web integration of your DSL.
- * Just execute it and point a web browser to http://localhost:8080/
+ * Just execute it and point a web browser to http://localhost:8086/
  */
 class ServerLauncher {
 	def static void main(String[] args) {
-		val server = new Server(new InetSocketAddress('localhost', 8080))
+		val server = new Server(new InetSocketAddress('localhost', 8086))
 		server.handler = new WebAppContext => [
 			resourceBase = 'WebRoot'
 			welcomeFiles = #["index.html"]

@@ -10,7 +10,11 @@ dependencies {
 ideaDevelopment {
 	ideaVersion = '143.381.42'
 	pluginRepositories {
-		url "http://download.eclipse.org/modeling/tmf/xtext/idea/${xtextVersion}/updatePlugins.xml"
+        // ISSUE: IntelliJ Xtext plugin 2.11.0 has not been published.
+        // Replacing ${xtextVersion} by "2.10.0" causes a java.net.MalformedURLException,
+        // and would not work completely with all features. Maybe fixed for 2.12?
+        // See: https://www.eclipse.org/forums/index.php/t/1084079/
+        url "http://download.eclipse.org/modeling/tmf/xtext/idea/${xtextVersion}/updatePlugins.xml"
 	}
 	pluginDependencies {
 		id 'org.eclipse.xtext.idea' version xtextVersion
