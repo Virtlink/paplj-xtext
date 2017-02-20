@@ -1,0 +1,147 @@
+grammar org.metaborg.paplj.Paplj with org.eclipse.xtext.common.Terminals
+
+generate paplj "http://www.metaborg.org/paplj/Paplj"
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//                                                Program and Classes                                                 //
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// The first rule is the start rule, and must be a non-terminal.
+Program:
+	('program' name=QualifiedName ';'?)?
+	
+	imports+=Import*
+	
+    classes+=Type*
+
+    ('run'
+        expr=Expr)?
+;
+
+QualifiedName: ID ('.' ID)*;
+QualifiedNameWithWildcard: QualifiedName '.*'?;
+
+Import: 'import' importedNamespace=QualifiedNameWithWildcard ';'?;
+
+Type:
+	'class' name=ID ('extends' superclass=[Type|QualifiedName])? '{'
+		members+=Member*
+	'}'
+;
+
+Member: Field | Method;
+Symbol: Param | Binding | Member;
+
+Field: type=[Type|QualifiedName] name=ID ';'?;
+
+Method: type=[Type|QualifiedName] name=ID '(' (params+=Param (',' params+=Param)*)? ')'
+    body=Block2
+;
+
+Param: type=[Type|QualifiedName] name=ID;
+
+Binding: type=[Type|QualifiedName] name=ID '=' value=Expr;
+
+Block2: {Block2}
+    '{'
+        (exprs+=Expr (';' exprs+=Expr)*)? ';'?
+    '}'
+;
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//                                                     Expressions                                                    //
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// From lowest to highest precedence.
+Expr returns Expr:
+	IfLetExpr
+;
+
+IfLetExpr returns Expr:
+    If |
+    Let |
+    AssignmentExpr
+;
+
+// Non-associative.
+AssignmentExpr returns Expr:
+	LogicalOrExpr (
+		=>({Assignment.left=current} '.' member=[Member] '=' value=Expr) |
+		=>({MemberRef.left=current} '.' member=[Member] (
+			(methodInvocation?='(' (args+=Expr (',' args+=Expr)*)? ')')?
+		))
+	)*
+;
+
+// Left-associative.
+LogicalOrExpr returns Expr:
+    LogicalAndExpr ((
+            {Or.left=current}  '||'
+    ) right=LogicalAndExpr)*
+;
+
+// Left-associative.
+LogicalAndExpr returns Expr:
+    ComparativeExpr ((
+            {And.left=current} '&&'
+    ) right=ComparativeExpr)*
+;
+
+// Non-associative.
+ComparativeExpr returns Expr:
+    AdditiveExpr ((
+            {Eq.left=current}  '==' |
+            {Neq.left=current} '!=' |
+            {Lt.left=current}  '<'
+    ) right=AdditiveExpr)?
+;
+
+// Left-associative.
+AdditiveExpr returns Expr:
+    MultiplicativeExpr ((
+            {Add.left=current} '+' |
+            {Sub.left=current} '-'
+    ) right=MultiplicativeExpr)*
+;
+
+// Left-associative.
+MultiplicativeExpr returns Expr:
+    UnaryExpr ((
+            {Mul.left=current} '*' |
+            {Div.left=current} '/'
+    ) right=UnaryExpr)*
+;
+
+UnaryExpr returns Expr:
+    PrimaryExpr ((
+            {Cast.left=current} 'as'
+    ) type=[Type])? |
+    {Not} '!' expr=UnaryExpr |
+    {Min} '-' expr=UnaryExpr
+;
+
+PrimaryExpr returns Expr:
+    {Num} value=INT |
+    {Bool} (^true?='true' | 'false') |
+    {This} 'this' |
+    {Null} 'null' (type=[Type])? |
+    {New} 'new' type=[Type|QualifiedName] '(' ')' |
+    {Var} member=[Symbol] (methodInvocation?='(' (args+=Expr (',' args+=Expr)*)? ')')? |
+    Block2 |
+    '(' Expr ')'
+;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+If:
+    'if' '(' condition=Expr ')'
+        onTrue=Expr
+    'else'
+        onFalse=Expr
+;
+
+Let:
+    'let' (bindings+=Binding)*
+    'in' expr=Expr
+;
