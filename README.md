@@ -14,7 +14,8 @@ To run an Eclipse instance with PAPLJ:
 1. right-click the main project;
 2. select _Run As_ → _Eclipse Application_ to launch the Eclipse instance;
 3. create a new Java project;
-4. in the `src` directory, create a new file ending with the `.pj` extension.
+4. in the `src` directory, create a new file ending with the `.pj` extension;
+5. if asked, confirm the conversion to an Xtext project.
 
 ### IntelliJ
 To run an IntelliJ instance with PAPLJ:
@@ -46,3 +47,9 @@ The workspace consists of the following projects:
 - `org.metaborg.paplj.ui.tests` — Eclipse unit-tests.
 - `org.metaborg.paplj.target` — Eclipse target platform definition against which to build.
 - `org.metaborg.paplj.web` — Web functionality.
+
+
+## Editing
+
+### Guillemets
+To get the guillemets used in Xtend files (that is, `«` and `»`), in the Eclipse editor press Ctrl+Shift+<, Ctrl+Shift+> (or on Mac Cmd instead of Ctrl).

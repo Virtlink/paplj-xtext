@@ -24,7 +24,7 @@ QualifiedNameWithWildcard: QualifiedName '.*'?;
 Import: 'import' importedNamespace=QualifiedNameWithWildcard ';'?;
 
 Type:
-	'class' name=ID ('extends' superclass=[Type|QualifiedName])? '{'
+	'class' name=ID ('extends' superType=[Type|QualifiedName])? '{'
 		members+=Member*
 	'}'
 ;
