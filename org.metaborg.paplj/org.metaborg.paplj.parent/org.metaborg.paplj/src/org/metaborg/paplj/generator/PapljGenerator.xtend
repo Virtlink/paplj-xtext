@@ -52,22 +52,21 @@ class PapljGenerator extends AbstractGenerator {
 	'''
 	
 	def compileMethod(Method m) '''
-	public «m.type.fullyQualifiedName» «m.name»(«FOR p : m.params SEPARATOR ', '»«p.compileParam»«ENDFOR») {
-		
-	}
+	public «m.type.fullyQualifiedName» «m.name»(«FOR p : m.params SEPARATOR ', '»«p.compileParam»«ENDFOR»)
+	«compileBlock(m.body)»
 	'''
 	
 	def compileParam(Param p) '''«p.type.fullyQualifiedName» «p.name»'''
 	
 	def compileBinding(Binding b) '''«b.type.fullyQualifiedName» «b.name» = «b.value.compileExpr»;'''
 	
-	def compileBlock(Block2 b) ''' {
+	def compileBlock(Block2 b) '''{
 		«FOR e : b.exprs»
 			«e.compileExpr»
 		«ENDFOR»
 	}
 	'''
-//	def compile(Expr e) '''/*ERROR*/'''
+
 	// FIXME: This is not correct for expressions.
 	def dispatch compileExpr(If e) '''
 	if («e.condition.compileExpr»)
