@@ -1,0 +1,9 @@
+program paplj.lang
+
+class Num {
+}
+
+class Bool {
+}
+
+run true

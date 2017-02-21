@@ -16,14 +16,17 @@ Require-Bundle: org.eclipse.xtext,
  org.eclipse.emf.common
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Export-Package: org.metaborg.paplj,
- org.metaborg.paplj.services,
  org.metaborg.paplj.generator,
- org.metaborg.paplj.parser.antlr,
- org.metaborg.paplj.scoping,
- org.metaborg.paplj.paplj.util,
- org.metaborg.paplj.parser.antlr.internal,
+ org.metaborg.paplj.lib,
  org.metaborg.paplj.paplj,
  org.metaborg.paplj.paplj.impl,
+ org.metaborg.paplj.paplj.util,
+ org.metaborg.paplj.parser.antlr,
+ org.metaborg.paplj.parser.antlr.internal,
+ org.metaborg.paplj.scoping,
  org.metaborg.paplj.serializer,
- org.metaborg.paplj.validation
+ org.metaborg.paplj.services,
+ org.metaborg.paplj.types,
+ org.metaborg.paplj.validation,
+ paplj.lang
 Import-Package: org.apache.log4j
