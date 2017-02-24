@@ -3,8 +3,8 @@
  */
 package org.metaborg.paplj.scoping
 
-import org.metaborg.paplj.paplj.MemberRef
-import org.eclipse.emf.ecore.EReference
+import org.metaborg.paplj.paplj.*
+import org.eclipse.emf.ecore.*
 import org.eclipse.xtext.scoping.IScope
 import org.metaborg.paplj.types.PapljTypeProvider
 import com.google.inject.Inject
@@ -15,6 +15,8 @@ import org.metaborg.paplj.paplj.Var
 import static extension org.eclipse.xtext.EcoreUtil2.*
 import org.metaborg.paplj.paplj.Let
 import org.metaborg.paplj.paplj.Expr
+import java.util.List
+import org.metaborg.paplj.lib.PapljLib
 
 /**
  * This class contains custom scoping description.
@@ -27,6 +29,16 @@ class PapljScopeProvider extends AbstractPapljScopeProvider {
 	// NOTE: These method names work by convention.
 	
 	@Inject extension PapljTypeProvider
+	@Inject extension PapljLib
+	
+	override getScope(EObject context, EReference reference) {
+		switch context {
+			Var case reference == PapljPackage.Literals.SYMBOL: scope_Symbol(context, reference)
+			MemberRef case reference == PapljPackage.Literals.MEMBER: scope_Member(context, reference)
+			Expr case reference == PapljPackage.Literals.VAR__MEMBER: scope_Var_member(context, reference)
+			default: super.getScope(context, reference)
+		}		
+	}
 	
 	def scope_Symbol(Var ref, EReference r) {
 		val type = ref.getContainerOfType(typeof(Type))	// implicit `this`
@@ -40,11 +52,15 @@ class PapljScopeProvider extends AbstractPapljScopeProvider {
 		val scope = getScopesForClasses(IScope::NULLSCOPE, type, ref.methodInvocation)
 		scope
 	}
+
+	def scope_Var_member(Expr context, EReference r) {
+		context.eContainer.symbolsDefinedBefore(context)
+	}
 	
 	def getScopesForClasses(IScope baseScope, Type type, boolean isMethodInvocation) {
 		var scope = baseScope
 		
-		if (type === null)
+		if (type === null || type.isPrimitive)
 			return scope
 		for (c : type.ancestors.reverseView) {
 			// Override the previous scope with a new scope for the parent type.
@@ -64,9 +80,26 @@ class PapljScopeProvider extends AbstractPapljScopeProvider {
 			type.methods + type.fields
 		else
 			// For a field reference we primarily resolve to fields,
-			// and secondarily to methods (so we can give a more descritive
+			// and secondarily to methods (so we can give a more descriptive
 			// error other than 'reference not found').
 			type.fields + type.methods
+	}
+	
+	def dispatch IScope symbolsDefinedBefore(EObject container, EObject o) {
+		container.eContainer.symbolsDefinedBefore(o.eContainer)
+	}
+	
+	def dispatch IScope symbolsDefinedBefore(Method m, EObject o) {
+		Scopes::scopeFor(m.params)
+	}
+	
+	def dispatch IScope symbolsDefinedBefore(Block2 b, EObject o) {
+		Scopes::scopeFor(b.exprs.variablesDeclaredBefore(o), b.eContainer.symbolsDefinedBefore(o.eContainer))
+	}
+	
+	def private variablesDeclaredBefore(List<Expr> list, EObject o) {
+		// Local variables are not supported by PAPLJ.
+		<EObject>newArrayList
 	}
 	
 	def getScopesForBindings(IScope baseScope, Expr e) {

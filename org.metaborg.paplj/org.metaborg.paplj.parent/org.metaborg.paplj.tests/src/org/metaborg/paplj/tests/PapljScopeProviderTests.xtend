@@ -72,6 +72,7 @@ class PapljScopeProviderTests {
 		class A { }
 		'''.parse.classes.head.methods.last.body.exprs.last.asLet.expr => [
 			assertScope(ep.memberRef_Member, #['f', 'm', 'C.f', 'C.m'])
+			assertScope(ep.var_Member, #['p', 'v', 'f', 'm', 'm.p', 'm.v', 'C.f', 'C.m', 'C.m.p', 'C.m.v'])
 		]
 	}
 	
