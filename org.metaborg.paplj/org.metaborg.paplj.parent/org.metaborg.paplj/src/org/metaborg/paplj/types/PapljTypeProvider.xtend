@@ -51,8 +51,20 @@ class PapljTypeProvider {
 		val f = e.eContainingFeature
 		
 		switch (c) {
-			case f == ep.if_Condition: BoolT
-			// TODO, page 221
+			// The if-statement's condition must be Bool.
+			If         case f == ep.if_Condition: BoolT
+			// The assignment's value must be the type of the member it's assigned to.
+			Assignment case f == ep.assignment_Value: c.left.typeOf
+			// The method's body must return a value of the type of the method.
+			Method     case f == ep.method_Body: c.type
+			// A possible method call's arguments must match the types of the parameters. 
+			MemberRef  case f == ep.memberRef_Args: {
+				try {
+					(c.member as Method).params.get(c.args.indexOf(e)).type
+				} catch (Throwable t) {
+					null
+				}
+			}
 		}
 	}
 	
@@ -64,7 +76,7 @@ class PapljTypeProvider {
 		// have no associated resource, which allows
 		// us to identify them as the primitive types
 		// we created.
-		t.eResource == null
+		t.eResource === null
 	}
 	
 }

@@ -8,6 +8,9 @@ import org.metaborg.paplj.types.PapljTypeProvider
 import org.metaborg.paplj.types.PapljTypeConformance
 import org.metaborg.paplj.paplj.Expr
 import org.eclipse.xtext.validation.Check
+import org.metaborg.paplj.paplj.PapljPackage
+import org.metaborg.paplj.paplj.*
+import static extension org.metaborg.paplj.PapljModelUtil.*;
 
 /**
  * This class contains custom validation rules. 
@@ -21,6 +24,7 @@ class PapljValidator extends AbstractPapljValidator {
 	
 	// These are identifiers, but do not have to be real classes.
 	public static val INCOMPATIBLE_TYPES = "org.metaborg.paplj.IncompatibleTypes"
+	public static val HIERARCHY_CYCLE = "org.metaborg.paplj.HierarchyCycle"
 	
 	@Check
 	def void checkCompatibleTypes(Expr e) {
@@ -30,7 +34,16 @@ class PapljValidator extends AbstractPapljValidator {
 			return;
 		if (!actualType.isConformant(expectedType)) {
 			error('''Incompatible types. Expected '«expectedType?.name»'
-			but was '«actualType?.name»'.''', null, INCOMPATIBLE_TYPES)
+			but was '«actualType?.name»'.''',
+			null, INCOMPATIBLE_TYPES)
+		}
+	}
+	
+	@Check
+	def checkTypeHierarchy(Type c) {
+		if (c.ancestors.contains(c)) {
+			error('''Cycle in hierarchy of type '«c.name»'.''',
+			PapljPackage::eINSTANCE.type_SuperType, HIERARCHY_CYCLE, c.superType.name)
 		}
 	}
 	
