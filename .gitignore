@@ -30,10 +30,10 @@ hs_err_pid*
 
 
 ### Xtext ###
-src-gen/
-xtext-gen/
-xtend-gen/
-generated/
+#src-gen/
+#xtext-gen/
+#xtend-gen/
+#generated/
 .idea/xtextAutoBuilderState.xml
 *._trace
 *.xtendbin
@@ -67,13 +67,4 @@ tmp/
 *.bak
 *.swp
 *~.nib
-#.metadata
-#local.properties
-#.settings/
-#.loadpath
-#.recommenders
-#.project
-#.externalToolBuilders/
-#*.launch
-#.classpath
 
