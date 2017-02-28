@@ -20,7 +20,7 @@ import com.google.common.collect.Lists
 
 @RunWith(typeof(XtextRunner))
 @InjectWith(typeof(PapljInjectorProvider))
-class PapljScopeProviderTests {
+class PapljScopeProviderTest {
 	
 	@Inject extension ParseHelper<Program>
 	@Inject extension ValidationTestHelper

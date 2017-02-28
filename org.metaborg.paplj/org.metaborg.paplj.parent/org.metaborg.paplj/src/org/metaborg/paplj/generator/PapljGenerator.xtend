@@ -61,86 +61,59 @@ class PapljGenerator extends AbstractGenerator {
 	def compileBinding(Binding b) '''«b.type.fullyQualifiedName» «b.name» = «b.value.compileExpr»;'''
 	
 	def compileBlock(Block2 b) '''{
-		«FOR e : b.exprs»
-			«e.compileExpr»
-		«ENDFOR»
-	}
-	'''
+	«FOR e : b.exprs»
+		«e.compileExpr»;
+	«ENDFOR»
+}
+'''
 
+	def dispatch compileExpr(If e) '''(«e.condition.compileExpr» ? «e.onTrue.compileExpr» : «e.onFalse.compileExpr»)'''
 	// FIXME: This is not correct for expressions.
-	def dispatch compileExpr(If e) '''
-	if («e.condition.compileExpr»)
-		«e.onTrue.compileExpr»
-	else
-		«e.onFalse.compileExpr»
-	'''
-	// FIXME: This is not correct for expressions.
-	def dispatch compileExpr(Let e) '''
-	{
-		«FOR b : e.bindings»
-			«b.compileBinding»
-		«ENDFOR»
-		«e.expr.compileExpr»
-	}
-	'''
-	def dispatch compileExpr(Assignment a) '''
-	«a.member.fullyQualifiedName» = «a.value.compileExpr»;
-	'''
-	def dispatch compileExpr(MemberRef r) '''
-	«r.member.fullyQualifiedName»«IF r.methodInvocation»(«FOR a : r.args SEPARATOR ', '»«a.compileExpr»«ENDFOR»)«ENDIF»
-	'''
-	def dispatch compileExpr(Or e) '''
-	(«e.left.compileExpr» || «e.right.compileExpr»)
-	'''
-	def dispatch compileExpr(And e) '''
-	(«e.left.compileExpr» && «e.right.compileExpr»)
-	'''
-	def dispatch compileExpr(Eq e) '''
-	(«e.left.compileExpr» == «e.right.compileExpr»)
-	'''
-	def dispatch compileExpr(Neq e) '''
-	(«e.left.compileExpr» != «e.right.compileExpr»)
-	'''
-	def dispatch compileExpr(Lt e) '''
-	(«e.left.compileExpr» < «e.right.compileExpr»)
-	'''
-	def dispatch compileExpr(Add e) '''
-	(«e.left.compileExpr» + «e.right.compileExpr»)
-	'''
-	def dispatch compileExpr(Sub e) '''
-	(«e.left.compileExpr» - «e.right.compileExpr»)
-	'''
-	def dispatch compileExpr(Mul e) '''
-	(«e.left.compileExpr» * «e.right.compileExpr»)
-	'''
-	def dispatch compileExpr(Div e) '''
-	(«e.left.compileExpr» / «e.right.compileExpr»)
-	'''
-	def dispatch compileExpr(Cast e) '''
-	((«e.type.fullyQualifiedName»)«e.left.compileExpr»)
-	'''
-	def dispatch compileExpr(Not e) '''
-	(!«e.expr.compileExpr»)
-	'''
-	def dispatch compileExpr(Min e) '''
-	(-«e.expr.compileExpr»)
-	'''
-	def dispatch compileExpr(Num e) '''
-	«e.value»
-	'''
-	def dispatch compileExpr(Bool e) '''
-	«IF e.^true»true«ELSE»false«ENDIF»
-	'''
-	def dispatch compileExpr(This e) '''
-	this
-	'''
-	def dispatch compileExpr(Null e) '''
-	((«e.type.fullyQualifiedName»)null)
-	'''
-	def dispatch compileExpr(New e) '''
-	(new «e.type.fullyQualifiedName»())
-	'''
-	def dispatch compileExpr(Var e) '''
-	«e.member.fullyQualifiedName»«IF e.methodInvocation»(«FOR a : e.args SEPARATOR ', '»«a.compileExpr»«ENDFOR»)«ENDIF»
-	'''
+	def dispatch compileExpr(Let e) '''{
+	«FOR b : e.bindings»
+		«b.compileBinding»
+	«ENDFOR»
+	«e.expr.compileExpr»;
+}
+'''
+	def dispatch compileExpr(Assignment a)
+	'''(«a.left.compileExpr» = «a.value.compileExpr»)'''
+	def dispatch compileExpr(MemberRef r)
+	'''«r.member.fullyQualifiedName»«IF r.methodInvocation»(«FOR a : r.args SEPARATOR ', '»«a.compileExpr»«ENDFOR»)«ENDIF»'''
+	def dispatch compileExpr(Or e)
+	'''(«e.left.compileExpr» || «e.right.compileExpr»)'''
+	def dispatch compileExpr(And e)
+	'''(«e.left.compileExpr» && «e.right.compileExpr»)'''
+	def dispatch compileExpr(Eq e)
+	'''(«e.left.compileExpr» == «e.right.compileExpr»)'''
+	def dispatch compileExpr(Neq e)
+	'''(«e.left.compileExpr» != «e.right.compileExpr»)'''
+	def dispatch compileExpr(Lt e)
+	'''(«e.left.compileExpr» < «e.right.compileExpr»)'''
+	def dispatch compileExpr(Add e)
+	'''(«e.left.compileExpr» + «e.right.compileExpr»)'''
+	def dispatch compileExpr(Sub e)
+	'''(«e.left.compileExpr» - «e.right.compileExpr»)'''
+	def dispatch compileExpr(Mul e)
+	'''(«e.left.compileExpr» * «e.right.compileExpr»)'''
+	def dispatch compileExpr(Div e)
+	'''(«e.left.compileExpr» / «e.right.compileExpr»)'''
+	def dispatch compileExpr(Cast e)
+	'''((«e.type.fullyQualifiedName»)«e.left.compileExpr»)'''
+	def dispatch compileExpr(Not e)
+	'''(!«e.expr.compileExpr»)'''
+	def dispatch compileExpr(Min e)
+	'''(-«e.expr.compileExpr»)'''
+	def dispatch compileExpr(Num e)
+	'''«e.value»'''
+	def dispatch compileExpr(Bool e)
+	'''«IF e.^true»true«ELSE»false«ENDIF»'''
+	def dispatch compileExpr(This e)
+	'''this'''
+	def dispatch compileExpr(Null e)
+	'''((«e.type.fullyQualifiedName»)null)'''
+	def dispatch compileExpr(New e)
+	'''(new «e.type.fullyQualifiedName»())'''
+	def dispatch compileExpr(Var e)
+	'''«e.member.fullyQualifiedName»«IF e.methodInvocation»(«FOR a : e.args SEPARATOR ', '»«a.compileExpr»«ENDFOR»)«ENDIF»'''
 }

@@ -17,7 +17,7 @@ import static extension org.metaborg.paplj.PapljModelUtil.*
 
 @RunWith(XtextRunner)
 @InjectWith(PapljInjectorProvider)
-class PapljParsingTests {
+class PapljParsingTest {
 
 	@Inject extension ParseHelper<Program>
 	@Inject extension ValidationTestHelper
@@ -50,7 +50,7 @@ class PapljParsingTests {
 	def private String stringRepr(Expr e) {
 		switch (e) {
 			MemberRef: '''(«e.left.stringRepr».«e.member.name»«IF e.methodInvocation»(«e.args.join(', ')[ it.stringRepr ]»)«ENDIF»)'''
-			Assignment: '''(«e.left.stringRepr».«e.member.name» = «e.value.stringRepr»)'''
+			Assignment: '''(«e.left.stringRepr» = «e.value.stringRepr»)'''
 			This: "this"
 		}
 	}

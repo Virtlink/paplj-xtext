@@ -14,7 +14,7 @@ import org.junit.Test
 
 @RunWith(typeof(XtextRunner))
 @InjectWith(typeof(PapljInjectorProvider))
-class PapljTypeConformanceTests {
+class PapljTypeConformanceTest {
 	
 	@Inject extension ParseHelper<Program>
 	@Inject extension PapljTypeConformance

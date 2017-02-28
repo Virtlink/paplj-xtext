@@ -17,7 +17,7 @@ import org.metaborg.paplj.lib.PapljLib
 
 @RunWith(typeof(XtextRunner))
 @InjectWith(typeof(PapljInjectorProvider))
-class PapljValidatorTests {
+class PapljValidatorTest {
 	
 	@Inject extension ParseHelper<Program>
 	@Inject extension ValidationTestHelper

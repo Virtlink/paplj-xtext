@@ -33,28 +33,24 @@ class PapljScopeProvider extends AbstractPapljScopeProvider {
 	
 	override getScope(EObject context, EReference reference) {
 		switch context {
-			Var case reference == PapljPackage.Literals.SYMBOL: scope_Symbol(context, reference)
-			MemberRef case reference == PapljPackage.Literals.MEMBER: scope_Member(context, reference)
-			Expr case reference == PapljPackage.Literals.VAR__MEMBER: scope_Var_member(context, reference)
+			MemberRef case reference == PapljPackage.Literals.MEMBER_REF__MEMBER: scope_MemberRef_member(context, reference)
+//			Var case reference == PapljPackage.Literals.VAR__MEMBER: scope_Var_member(context, reference)
 			default: super.getScope(context, reference)
 		}		
 	}
 	
-	def scope_Symbol(Var ref, EReference r) {
-		val type = ref.getContainerOfType(typeof(Type))	// implicit `this`
-		val scope = getScopesForClasses(IScope::NULLSCOPE, type, ref.methodInvocation)
-		val newScope = getScopesForBindings(scope, ref)
-		newScope
-	}
-	
-	def scope_Member(MemberRef ref, EReference r) {
+	def scope_MemberRef_member(MemberRef ref, EReference r) {
 		val type = ref.left.typeOf
 		val scope = getScopesForClasses(IScope::NULLSCOPE, type, ref.methodInvocation)
 		scope
 	}
 
-	def scope_Var_member(Expr context, EReference r) {
-		context.eContainer.symbolsDefinedBefore(context)
+	def scope_Var_member(Var ref, EReference r) {
+		val type = ref.getContainerOfType(typeof(Type))	// implicit `this`
+		val scope = getScopesForClasses(IScope::NULLSCOPE, type, ref.methodInvocation)
+		val newScope = getScopesForBindings(scope, ref)
+		newScope
+//		context.eContainer.symbolsDefinedBefore(context)
 	}
 	
 	def getScopesForClasses(IScope baseScope, Type type, boolean isMethodInvocation) {
@@ -64,9 +60,7 @@ class PapljScopeProvider extends AbstractPapljScopeProvider {
 			return scope
 		for (c : type.ancestors.reverseView) {
 			// Override the previous scope with a new scope for the parent type.
-			scope = Scopes::scopeFor(c.selectMembers(isMethodInvocation),
-				scope
-			)
+			scope = Scopes::scopeFor(c.selectMembers(isMethodInvocation), scope)
 		}
 		// Override the previous scope with a new scope for this type.
 		Scopes::scopeFor(type.selectMembers(isMethodInvocation), scope)

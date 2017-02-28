@@ -15,7 +15,7 @@ import com.google.common.collect.Lists
 
 @RunWith(XtextRunner)
 @InjectWith(PapljInjectorProvider)
-class PapljIndexTests {
+class PapljIndexTest {
 	
 	@Inject extension ParseHelper<Program>;
 	@Inject extension PapljIndex;

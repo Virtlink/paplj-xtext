@@ -67,11 +67,8 @@ IfLetExpr returns Expr:
 // Non-associative.
 AssignmentExpr returns Expr:
 	LogicalOrExpr (
-		=>({Assignment.left=current} '.' member=[Member] '=' value=Expr) |
-		=>({MemberRef.left=current} '.' member=[Member] (
-			(methodInvocation?='(' (args+=Expr (',' args+=Expr)*)? ')')?
-		))
-	)*
+		=>({Assignment.left=current} '=' value=Expr)
+	)?
 ;
 
 // Left-associative.
@@ -113,12 +110,22 @@ MultiplicativeExpr returns Expr:
     ) right=UnaryExpr)*
 ;
 
+// Non-associative.
 UnaryExpr returns Expr:
-    PrimaryExpr ((
+    MemberExpr ((
             {Cast.left=current} 'as'
     ) type=[Type])? |
     {Not} '!' expr=UnaryExpr |
     {Min} '-' expr=UnaryExpr
+;
+
+// Left-associative.
+MemberExpr returns Expr:
+	PrimaryExpr (
+		=>({MemberRef.left=current} '.' member=[Member] (
+			(methodInvocation?='(' (args+=Expr (',' args+=Expr)*)? ')')?
+		))
+	)*
 ;
 
 PrimaryExpr returns Expr:

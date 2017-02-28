@@ -18,7 +18,7 @@ import static extension org.metaborg.paplj.PapljModelUtil.*
 
 @RunWith(XtextRunner)
 @InjectWith(PapljInjectorProvider)
-class PapljTypeProviderTests {
+class PapljTypeProviderTest {
 	
 	@Inject extension ParseHelper<Program>
 	@Inject extension PapljTypeProvider
