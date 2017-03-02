@@ -79,4 +79,23 @@ class PapljTypeProvider {
 		t.eResource === null
 	}
 	
+	def memberAsString(Member member) {
+		switch (member) {
+			Field: member.name
+			Method: '''«member.name»(«member.paramsTypesAsString»)'''
+		}
+	}
+	
+	def paramsTypesAsString(Method method) {
+		method.params.map[type?.name].join(", ")
+	}
+
+	def memberAsStringWithType(Member member) {
+		'''«member.memberAsString» : «member.type.name»'''
+	}
+	
+	def argsTypesAsStrings(MemberRef ref) {
+		"(" + ref.args.map[typeOf?.name].join(", ") + ")"
+	}
+	
 }

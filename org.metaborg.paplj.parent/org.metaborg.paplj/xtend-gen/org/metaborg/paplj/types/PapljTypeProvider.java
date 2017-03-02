@@ -6,10 +6,13 @@ import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.resource.Resource;
+import org.eclipse.xtend2.lib.StringConcatenation;
 import org.eclipse.xtext.EcoreUtil2;
 import org.eclipse.xtext.xbase.lib.Exceptions;
 import org.eclipse.xtext.xbase.lib.Extension;
+import org.eclipse.xtext.xbase.lib.Functions.Function1;
 import org.eclipse.xtext.xbase.lib.IterableExtensions;
+import org.eclipse.xtext.xbase.lib.ListExtensions;
 import org.eclipse.xtext.xbase.lib.ObjectExtensions;
 import org.eclipse.xtext.xbase.lib.Procedures.Procedure1;
 import org.metaborg.paplj.lib.PapljLib;
@@ -21,6 +24,7 @@ import org.metaborg.paplj.paplj.Bool;
 import org.metaborg.paplj.paplj.Div;
 import org.metaborg.paplj.paplj.Eq;
 import org.metaborg.paplj.paplj.Expr;
+import org.metaborg.paplj.paplj.Field;
 import org.metaborg.paplj.paplj.If;
 import org.metaborg.paplj.paplj.Lt;
 import org.metaborg.paplj.paplj.Member;
@@ -36,6 +40,7 @@ import org.metaborg.paplj.paplj.Num;
 import org.metaborg.paplj.paplj.Or;
 import org.metaborg.paplj.paplj.PapljFactory;
 import org.metaborg.paplj.paplj.PapljPackage;
+import org.metaborg.paplj.paplj.Param;
 import org.metaborg.paplj.paplj.Sub;
 import org.metaborg.paplj.paplj.Symbol;
 import org.metaborg.paplj.paplj.This;
@@ -269,5 +274,64 @@ public class PapljTypeProvider {
   public boolean isPrimitive(final Type t) {
     Resource _eResource = t.eResource();
     return (_eResource == null);
+  }
+  
+  public CharSequence memberAsString(final Member member) {
+    CharSequence _switchResult = null;
+    boolean _matched = false;
+    if (member instanceof Field) {
+      _matched=true;
+      _switchResult = ((Field)member).getName();
+    }
+    if (!_matched) {
+      if (member instanceof Method) {
+        _matched=true;
+        StringConcatenation _builder = new StringConcatenation();
+        String _name = ((Method)member).getName();
+        _builder.append(_name);
+        _builder.append("(");
+        String _paramsTypesAsString = this.paramsTypesAsString(((Method)member));
+        _builder.append(_paramsTypesAsString);
+        _builder.append(")");
+        _switchResult = _builder;
+      }
+    }
+    return _switchResult;
+  }
+  
+  public String paramsTypesAsString(final Method method) {
+    final Function1<Param, String> _function = (Param it) -> {
+      Type _type = it.getType();
+      String _name = null;
+      if (_type!=null) {
+        _name=_type.getName();
+      }
+      return _name;
+    };
+    return IterableExtensions.join(ListExtensions.<Param, String>map(method.getParams(), _function), ", ");
+  }
+  
+  public CharSequence memberAsStringWithType(final Member member) {
+    StringConcatenation _builder = new StringConcatenation();
+    CharSequence _memberAsString = this.memberAsString(member);
+    _builder.append(_memberAsString);
+    _builder.append(" : ");
+    String _name = member.getType().getName();
+    _builder.append(_name);
+    return _builder;
+  }
+  
+  public String argsTypesAsStrings(final MemberRef ref) {
+    final Function1<Expr, String> _function = (Expr it) -> {
+      Type _typeOf = this.typeOf(it);
+      String _name = null;
+      if (_typeOf!=null) {
+        _name=_typeOf.getName();
+      }
+      return _name;
+    };
+    String _join = IterableExtensions.join(ListExtensions.<Expr, String>map(ref.getArgs(), _function), ", ");
+    String _plus = ("(" + _join);
+    return (_plus + ")");
   }
 }

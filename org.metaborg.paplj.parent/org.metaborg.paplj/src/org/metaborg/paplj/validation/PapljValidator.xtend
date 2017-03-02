@@ -11,6 +11,9 @@ import org.eclipse.xtext.validation.Check
 import org.metaborg.paplj.paplj.PapljPackage
 import org.metaborg.paplj.paplj.*
 import static extension org.metaborg.paplj.PapljModelUtil.*;
+import org.eclipse.xtext.validation.CheckType
+import org.eclipse.xtext.naming.IQualifiedNameProvider
+import org.metaborg.paplj.PapljIndex
 
 /**
  * This class contains custom validation rules. 
@@ -21,10 +24,20 @@ class PapljValidator extends AbstractPapljValidator {
 	
 	@Inject extension PapljTypeProvider
 	@Inject extension PapljTypeConformance
+	@Inject extension IQualifiedNameProvider
+	@Inject extension PapljIndex
 	
 	// These are identifiers, but do not have to be real classes.
-	public static val INCOMPATIBLE_TYPES = "org.metaborg.paplj.IncompatibleTypes"
-	public static val HIERARCHY_CYCLE = "org.metaborg.paplj.HierarchyCycle"
+	public static val INCOMPATIBLE_TYPES        = "org.metaborg.paplj.IncompatibleTypes"
+	public static val HIERARCHY_CYCLE           = "org.metaborg.paplj.HierarchyCycle"
+	public static val DUPLICATE_CLASS           = "org.metaborg.paplj.DuplicateClass"
+	public static val FIELD_IS_NOT_A_METHOD     = "org.metaborg.paplj.FieldIsNotAMethod"
+	public static val METHOD_IS_NOT_A_FIELD     = "org.metaborg.paplj.MethodIsNotAField"
+	public static val INVALID_ARGUMENTS         = "org.metaborg.paplj.InvalidArguments"
+	public static val DUPLICATE_MEMBER          = "org.metaborg.paplj.DuplicateMember"
+	public static val DUPLICATE_TYPE            = "org.metaborg.paplj.DuplicateType"
+	public static val MISSING_FINAL_RETURN      = "org.metaborg.paplj.MissingFinalReturn"
+	public static val INCORRECT_METHOD_OVERRIDE = "org.metaborg.paplj.IncorrectMethodOverride"
 	
 	@Check
 	def void checkCompatibleTypes(Expr e) {
@@ -46,5 +59,105 @@ class PapljValidator extends AbstractPapljValidator {
 			PapljPackage::eINSTANCE.type_SuperType, HIERARCHY_CYCLE, c.superType.name)
 		}
 	}
+	
+	@Check(CheckType::NORMAL)
+	def checkDuplicateTypes(Type c) {
+		val typeName = c.fullyQualifiedName
+		c.visibleTypeDescriptions.forEach[
+			desc |
+			if (desc.qualifiedName == typeName
+				&& desc.EObjectOrProxy != c 
+				&& desc.EObjectURI.trimFragment != c.eResource.URI)
+			{
+				error('''The type '«c.name»' is already defined.''',
+				PapljPackage::eINSTANCE.type_Name, DUPLICATE_CLASS)
+				return
+			}
+		]
+	}
+	
+	@Check
+	def void checkMemberSelection(MemberRef ref) {
+		val member = ref.member
+		if (member === null)
+			return;
+		if (member instanceof Field && ref.methodInvocation) {
+			error(
+				'''Field cannot be called as a method.''',
+				PapljPackage::eINSTANCE.memberRef_MethodInvocation,
+				FIELD_IS_NOT_A_METHOD
+			)
+		}
+		if (member instanceof Method && !ref.methodInvocation) {
+			error(
+				'''Method cannot be used as a field.''',
+				PapljPackage::eINSTANCE.memberRef_Member,
+				METHOD_IS_NOT_A_FIELD
+			)
+		}
+	}
+	
+	@Check
+	def void checkMethodInvocationArguments(MemberRef ref) {
+		if (ref.member === null || !(ref.member instanceof Method))
+			return;
+		val method = ref.member as Method
+		if (method.params.size != ref.args.size) {
+			error(
+				'''Invalid number of arguments. The method '«method.memberAsStringWithType»'
+				cannot be called with the arguments «ref.argsTypesAsStrings».''',
+				PapljPackage::eINSTANCE.memberRef_Member,
+				INVALID_ARGUMENTS
+			)
+		}
+	}
+
+	// TODO: member_Name is not generated in the package for some reason.
+//	@Check
+//	def void checkNoDuplicateMember(Member member) {
+//		val duplicate = member.containingClass.members.findFirst[
+//			it != member &&
+//			it.eClass == member.eClass &&
+//			it.name == member.name
+//		]
+//		if (duplicate !== null) {
+//			error('''Duplicate member '«member.name»'.''',
+//				PapljPackage::eINSTANCE.member_Name,
+//				DUPLICATE_MEMBER
+//			)
+//		}
+//	}
+
+	@Check
+	def void checkNoDuplicateClass(Type c) {
+		if (c.containingProgram.classes.exists[
+			it != c &&
+			it.name == c.name
+		]) {
+			error('''Duplicate class '«c.name»'.''',
+				PapljPackage::eINSTANCE.type_Name,
+				DUPLICATE_TYPE
+			)			
+		}
+	}
+
+	// TODO: member_Name is not generated in the package for some reason.
+//	@Check
+//	def void checkMethodOverride(Method method) {
+//		val overridden = method.containingClass.ancestors.
+//			map[methods].flatten.findFirst[it.name == method.name]
+//		
+//		if (overridden === null)
+//			return;
+//		
+//		if (!method.type.isConformant(overridden.type) ||
+//			!method.params.map[type].elementsEqual(overridden.params.map[type])) {
+//			error('''The method '«method.name»' does not (correctly) override a superclass method.''',
+//				PapljPackage::eINSTANCE.method_Name,
+//				INCORRECT_METHOD_OVERRIDE
+//			)
+//		}
+//	}
+	
 	
 }

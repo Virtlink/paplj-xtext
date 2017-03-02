@@ -3,12 +3,25 @@
  */
 package org.metaborg.paplj.validation;
 
+import com.google.common.base.Objects;
 import com.google.inject.Inject;
+import java.util.function.Consumer;
 import org.eclipse.xtend2.lib.StringConcatenation;
+import org.eclipse.xtext.naming.IQualifiedNameProvider;
+import org.eclipse.xtext.naming.QualifiedName;
+import org.eclipse.xtext.resource.IEObjectDescription;
 import org.eclipse.xtext.validation.Check;
+import org.eclipse.xtext.validation.CheckType;
 import org.eclipse.xtext.xbase.lib.Extension;
+import org.eclipse.xtext.xbase.lib.Functions.Function1;
+import org.eclipse.xtext.xbase.lib.IterableExtensions;
+import org.metaborg.paplj.PapljIndex;
 import org.metaborg.paplj.PapljModelUtil;
 import org.metaborg.paplj.paplj.Expr;
+import org.metaborg.paplj.paplj.Field;
+import org.metaborg.paplj.paplj.Member;
+import org.metaborg.paplj.paplj.MemberRef;
+import org.metaborg.paplj.paplj.Method;
 import org.metaborg.paplj.paplj.PapljPackage;
 import org.metaborg.paplj.paplj.Type;
 import org.metaborg.paplj.types.PapljTypeConformance;
@@ -30,9 +43,33 @@ public class PapljValidator extends AbstractPapljValidator {
   @Extension
   private PapljTypeConformance _papljTypeConformance;
   
+  @Inject
+  @Extension
+  private IQualifiedNameProvider _iQualifiedNameProvider;
+  
+  @Inject
+  @Extension
+  private PapljIndex _papljIndex;
+  
   public final static String INCOMPATIBLE_TYPES = "org.metaborg.paplj.IncompatibleTypes";
   
   public final static String HIERARCHY_CYCLE = "org.metaborg.paplj.HierarchyCycle";
+  
+  public final static String DUPLICATE_CLASS = "org.metaborg.paplj.DuplicateClass";
+  
+  public final static String FIELD_IS_NOT_A_METHOD = "org.metaborg.paplj.FieldIsNotAMethod";
+  
+  public final static String METHOD_IS_NOT_A_FIELD = "org.metaborg.paplj.MethodIsNotAField";
+  
+  public final static String INVALID_ARGUMENTS = "org.metaborg.paplj.InvalidArguments";
+  
+  public final static String DUPLICATE_MEMBER = "org.metaborg.paplj.DuplicateMember";
+  
+  public final static String DUPLICATE_TYPE = "org.metaborg.paplj.DuplicateType";
+  
+  public final static String MISSING_FINAL_RETURN = "org.metaborg.paplj.MissingFinalReturn";
+  
+  public final static String INCORRECT_METHOD_OVERRIDE = "org.metaborg.paplj.IncorrectMethodOverride";
   
   @Check
   public void checkCompatibleTypes(final Expr e) {
@@ -77,6 +114,93 @@ public class PapljValidator extends AbstractPapljValidator {
       _builder.append("\'.");
       this.error(_builder.toString(), 
         PapljPackage.eINSTANCE.getType_SuperType(), PapljValidator.HIERARCHY_CYCLE, c.getSuperType().getName());
+    }
+  }
+  
+  @Check(CheckType.NORMAL)
+  public void checkDuplicateTypes(final Type c) {
+    final QualifiedName typeName = this._iQualifiedNameProvider.getFullyQualifiedName(c);
+    final Consumer<IEObjectDescription> _function = (IEObjectDescription desc) -> {
+      if (((Objects.equal(desc.getQualifiedName(), typeName) && (!Objects.equal(desc.getEObjectOrProxy(), c))) && (!Objects.equal(desc.getEObjectURI().trimFragment(), c.eResource().getURI())))) {
+        StringConcatenation _builder = new StringConcatenation();
+        _builder.append("The type \'");
+        String _name = c.getName();
+        _builder.append(_name);
+        _builder.append("\' is already defined.");
+        this.error(_builder.toString(), 
+          PapljPackage.eINSTANCE.getType_Name(), PapljValidator.DUPLICATE_CLASS);
+        return;
+      }
+    };
+    this._papljIndex.getVisibleTypeDescriptions(c).forEach(_function);
+  }
+  
+  @Check
+  public void checkMemberSelection(final MemberRef ref) {
+    final Member member = ref.getMember();
+    if ((member == null)) {
+      return;
+    }
+    if (((member instanceof Field) && ref.isMethodInvocation())) {
+      StringConcatenation _builder = new StringConcatenation();
+      _builder.append("Field cannot be called as a method.");
+      this.error(_builder.toString(), 
+        PapljPackage.eINSTANCE.getMemberRef_MethodInvocation(), 
+        PapljValidator.FIELD_IS_NOT_A_METHOD);
+    }
+    if (((member instanceof Method) && (!ref.isMethodInvocation()))) {
+      StringConcatenation _builder_1 = new StringConcatenation();
+      _builder_1.append("Method cannot be used as a field.");
+      this.error(_builder_1.toString(), 
+        PapljPackage.eINSTANCE.getMemberRef_Member(), 
+        PapljValidator.METHOD_IS_NOT_A_FIELD);
+    }
+  }
+  
+  @Check
+  public void checkMethodInvocationArguments(final MemberRef ref) {
+    if (((ref.getMember() == null) || (!(ref.getMember() instanceof Method)))) {
+      return;
+    }
+    Member _member = ref.getMember();
+    final Method method = ((Method) _member);
+    int _size = method.getParams().size();
+    int _size_1 = ref.getArgs().size();
+    boolean _notEquals = (_size != _size_1);
+    if (_notEquals) {
+      StringConcatenation _builder = new StringConcatenation();
+      _builder.append("Invalid number of arguments. The method \'");
+      CharSequence _memberAsStringWithType = this._papljTypeProvider.memberAsStringWithType(method);
+      _builder.append(_memberAsStringWithType);
+      _builder.append("\'");
+      _builder.newLineIfNotEmpty();
+      _builder.append("\t\t\t\t");
+      _builder.append("cannot be called with the arguments ");
+      String _argsTypesAsStrings = this._papljTypeProvider.argsTypesAsStrings(ref);
+      _builder.append(_argsTypesAsStrings, "\t\t\t\t");
+      _builder.append(".");
+      this.error(_builder.toString(), 
+        PapljPackage.eINSTANCE.getMemberRef_Member(), 
+        PapljValidator.INVALID_ARGUMENTS);
+    }
+  }
+  
+  @Check
+  public void checkNoDuplicateClass(final Type c) {
+    final Function1<Type, Boolean> _function = (Type it) -> {
+      return Boolean.valueOf(((!Objects.equal(it, c)) && 
+        Objects.equal(it.getName(), c.getName())));
+    };
+    boolean _exists = IterableExtensions.<Type>exists(PapljModelUtil.containingProgram(c).getClasses(), _function);
+    if (_exists) {
+      StringConcatenation _builder = new StringConcatenation();
+      _builder.append("Duplicate class \'");
+      String _name = c.getName();
+      _builder.append(_name);
+      _builder.append("\'.");
+      this.error(_builder.toString(), 
+        PapljPackage.eINSTANCE.getType_Name(), 
+        PapljValidator.DUPLICATE_TYPE);
     }
   }
 }
