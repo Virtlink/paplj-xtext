@@ -4,6 +4,10 @@ import org.metaborg.paplj.paplj.*
 import static extension org.eclipse.xtext.EcoreUtil2.*
 import com.google.inject.Inject
 import org.metaborg.paplj.lib.PapljLib
+import org.eclipse.xtext.naming.IQualifiedNameProvider
+import static extension org.metaborg.paplj.PapljModelUtil.*;
+//import static org.eclipse.xtext.xbase.lib.IterableExtensions.*;
+import java.util.List
 
 /**
  * Determines the type of an expression. 
@@ -11,6 +15,8 @@ import org.metaborg.paplj.lib.PapljLib
 class PapljTypeProvider {
 	
 	@Inject extension PapljLib
+	@Inject extension IQualifiedNameProvider
+	@Inject extension PapljTypeConformance
 	
 	val ep = PapljPackage::eINSTANCE
 	
@@ -42,8 +48,20 @@ class PapljTypeProvider {
 			New: e.type
 			Var: e.member?.type
 			MemberRef: e.member?.type
+			Cast: e.type
 			Block2: e.exprs.last.typeOf
+			If: commonAncestorOf(e.onTrue.typeOf, e.onFalse.typeOf)
 		}
+	}
+	
+	def getSuperTypeOrAny(Type t) {
+		t.superType ?: getPapljAnyType(t)
+	}
+	
+	def Type commonAncestorOf(Type t1, Type t2) {
+		var candidates = (#[t1] + t1.ancestorsWithAny).toList
+		var type = candidates.findFirst[c|t2.isConformant(c)]
+		type ?: getPapljAnyType(t1)
 	}
 	
 	def Type expectedTypeOf(Expr e) {
@@ -65,6 +83,8 @@ class PapljTypeProvider {
 					null
 				}
 			}
+			// Let binding
+			Binding    case f == ep.binding_Value: c.type
 		}
 	}
 	
@@ -77,6 +97,21 @@ class PapljTypeProvider {
 		// us to identify them as the primitive types
 		// we created.
 		t.eResource === null
+	}
+	
+	def isNum(Type c) {
+		c == PapljTypeProvider.NumT ||
+		c.fullyQualifiedName.toString == PapljLib::LIB_NUM
+	}
+		
+	def isBool(Type c) {
+		c == PapljTypeProvider.BoolT ||
+		c.fullyQualifiedName.toString == PapljLib::LIB_BOOL
+	}
+		
+	def isAny(Type c) {
+		c == PapljTypeProvider.AnyT ||
+		c.fullyQualifiedName.toString == PapljLib::LIB_ANY
 	}
 	
 	def memberAsString(Member member) {

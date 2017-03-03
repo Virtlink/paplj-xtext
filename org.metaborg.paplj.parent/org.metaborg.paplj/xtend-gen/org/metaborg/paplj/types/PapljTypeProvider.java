@@ -1,13 +1,19 @@
 package org.metaborg.paplj.types;
 
 import com.google.common.base.Objects;
+import com.google.common.collect.Iterables;
 import com.google.inject.Inject;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.xtend2.lib.StringConcatenation;
 import org.eclipse.xtext.EcoreUtil2;
+import org.eclipse.xtext.naming.IQualifiedNameProvider;
+import org.eclipse.xtext.xbase.lib.CollectionLiterals;
 import org.eclipse.xtext.xbase.lib.Exceptions;
 import org.eclipse.xtext.xbase.lib.Extension;
 import org.eclipse.xtext.xbase.lib.Functions.Function1;
@@ -19,8 +25,10 @@ import org.metaborg.paplj.lib.PapljLib;
 import org.metaborg.paplj.paplj.Add;
 import org.metaborg.paplj.paplj.And;
 import org.metaborg.paplj.paplj.Assignment;
+import org.metaborg.paplj.paplj.Binding;
 import org.metaborg.paplj.paplj.Block2;
 import org.metaborg.paplj.paplj.Bool;
+import org.metaborg.paplj.paplj.Cast;
 import org.metaborg.paplj.paplj.Div;
 import org.metaborg.paplj.paplj.Eq;
 import org.metaborg.paplj.paplj.Expr;
@@ -46,6 +54,7 @@ import org.metaborg.paplj.paplj.Symbol;
 import org.metaborg.paplj.paplj.This;
 import org.metaborg.paplj.paplj.Type;
 import org.metaborg.paplj.paplj.Var;
+import org.metaborg.paplj.types.PapljTypeConformance;
 
 /**
  * Determines the type of an expression.
@@ -55,6 +64,14 @@ public class PapljTypeProvider {
   @Inject
   @Extension
   private PapljLib _papljLib;
+  
+  @Inject
+  @Extension
+  private IQualifiedNameProvider _iQualifiedNameProvider;
+  
+  @Inject
+  @Extension
+  private PapljTypeConformance _papljTypeConformance;
   
   private final PapljPackage ep = PapljPackage.eINSTANCE;
   
@@ -198,12 +215,57 @@ public class PapljTypeProvider {
       }
     }
     if (!_matched) {
+      if (e instanceof Cast) {
+        _matched=true;
+        _switchResult = ((Cast)e).getType();
+      }
+    }
+    if (!_matched) {
       if (e instanceof Block2) {
         _matched=true;
         _switchResult = this.typeOf(IterableExtensions.<Expr>last(((Block2)e).getExprs()));
       }
     }
+    if (!_matched) {
+      if (e instanceof If) {
+        _matched=true;
+        _switchResult = this.commonAncestorOf(this.typeOf(((If)e).getOnTrue()), this.typeOf(((If)e).getOnFalse()));
+      }
+    }
     return _switchResult;
+  }
+  
+  public Type getSuperTypeOrAny(final Type t) {
+    Type _elvis = null;
+    Type _superType = t.getSuperType();
+    if (_superType != null) {
+      _elvis = _superType;
+    } else {
+      Type _papljAnyType = this._papljLib.getPapljAnyType(t);
+      _elvis = _papljAnyType;
+    }
+    return _elvis;
+  }
+  
+  public Type commonAncestorOf(final Type t1, final Type t2) {
+    Type _xblockexpression = null;
+    {
+      ArrayList<Type> _ancestorsWithAny = this._papljLib.ancestorsWithAny(t1);
+      List<Type> candidates = IterableExtensions.<Type>toList(Iterables.<Type>concat(Collections.<Type>unmodifiableList(CollectionLiterals.<Type>newArrayList(t1)), _ancestorsWithAny));
+      final Function1<Type, Boolean> _function = (Type c) -> {
+        return Boolean.valueOf(this._papljTypeConformance.isConformant(t2, c));
+      };
+      Type type = IterableExtensions.<Type>findFirst(candidates, _function);
+      Type _elvis = null;
+      if (type != null) {
+        _elvis = type;
+      } else {
+        Type _papljAnyType = this._papljLib.getPapljAnyType(t1);
+        _elvis = _papljAnyType;
+      }
+      _xblockexpression = _elvis;
+    }
+    return _xblockexpression;
   }
   
   public Type expectedTypeOf(final Expr e) {
@@ -263,6 +325,16 @@ public class PapljTypeProvider {
           }
         }
       }
+      if (!_matched) {
+        if (c instanceof Binding) {
+          EReference _binding_Value = this.ep.getBinding_Value();
+          boolean _equals = Objects.equal(f, _binding_Value);
+          if (_equals) {
+            _matched=true;
+            _switchResult = ((Binding)c).getType();
+          }
+        }
+      }
       _xblockexpression = _switchResult;
     }
     return _xblockexpression;
@@ -274,6 +346,21 @@ public class PapljTypeProvider {
   public boolean isPrimitive(final Type t) {
     Resource _eResource = t.eResource();
     return (_eResource == null);
+  }
+  
+  public boolean isNum(final Type c) {
+    return (Objects.equal(c, PapljTypeProvider.NumT) || 
+      Objects.equal(this._iQualifiedNameProvider.getFullyQualifiedName(c).toString(), PapljLib.LIB_NUM));
+  }
+  
+  public boolean isBool(final Type c) {
+    return (Objects.equal(c, PapljTypeProvider.BoolT) || 
+      Objects.equal(this._iQualifiedNameProvider.getFullyQualifiedName(c).toString(), PapljLib.LIB_BOOL));
+  }
+  
+  public boolean isAny(final Type c) {
+    return (Objects.equal(c, PapljTypeProvider.AnyT) || 
+      Objects.equal(this._iQualifiedNameProvider.getFullyQualifiedName(c).toString(), PapljLib.LIB_ANY));
   }
   
   public CharSequence memberAsString(final Member member) {

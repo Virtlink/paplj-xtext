@@ -95,7 +95,7 @@ public class PapljScopeProvider extends AbstractPapljScopeProvider {
       if (((type == null) || this._papljTypeProvider.isPrimitive(type))) {
         return scope;
       }
-      List<Type> _reverseView = ListExtensions.<Type>reverseView(PapljModelUtil.ancestors(type));
+      List<Type> _reverseView = ListExtensions.<Type>reverseView(this._papljLib.ancestorsWithAny(type));
       for (final Type c : _reverseView) {
         scope = Scopes.scopeFor(this.selectMembers(c, isMethodInvocation), scope);
       }

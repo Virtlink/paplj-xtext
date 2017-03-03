@@ -5,6 +5,10 @@ import static extension org.eclipse.emf.ecore.util.EcoreUtil.*
 import static extension org.eclipse.xtext.EcoreUtil2.*
 import org.metaborg.paplj.paplj.*
 import org.eclipse.emf.ecore.EObject
+import org.metaborg.paplj.types.PapljTypeProvider
+import org.metaborg.paplj.lib.PapljLib
+import com.google.inject.Inject
+import org.eclipse.xtext.naming.IQualifiedNameProvider
 
 /**
  * Utility functions for working with the PAPLJ model.

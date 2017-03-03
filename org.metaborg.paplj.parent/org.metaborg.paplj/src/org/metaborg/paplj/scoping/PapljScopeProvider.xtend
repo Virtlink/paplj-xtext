@@ -34,7 +34,6 @@ class PapljScopeProvider extends AbstractPapljScopeProvider {
 	override getScope(EObject context, EReference reference) {
 		switch context {
 			MemberRef case reference == PapljPackage.Literals.MEMBER_REF__MEMBER: scope_MemberRef_member(context, reference)
-//			Var case reference == PapljPackage.Literals.VAR__MEMBER: scope_Var_member(context, reference)
 			default: super.getScope(context, reference)
 		}		
 	}
@@ -58,7 +57,7 @@ class PapljScopeProvider extends AbstractPapljScopeProvider {
 		
 		if (type === null || type.isPrimitive)
 			return scope
-		for (c : type.ancestors.reverseView) {
+		for (c : type.ancestorsWithAny.reverseView) {
 			// Override the previous scope with a new scope for the parent type.
 			scope = Scopes::scopeFor(c.selectMembers(isMethodInvocation), scope)
 		}

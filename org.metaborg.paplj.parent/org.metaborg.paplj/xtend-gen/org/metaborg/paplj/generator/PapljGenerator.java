@@ -161,8 +161,8 @@ public class PapljGenerator extends AbstractGenerator {
     }
     _builder.append(")");
     _builder.newLineIfNotEmpty();
-    CharSequence _compileBlock = this.compileBlock(m.getBody());
-    _builder.append(_compileBlock);
+    CharSequence _compileExpr = this.compileExpr(m.getBody());
+    _builder.append(_compileExpr);
     _builder.newLineIfNotEmpty();
     return _builder;
   }
@@ -191,7 +191,7 @@ public class PapljGenerator extends AbstractGenerator {
     return _builder;
   }
   
-  public CharSequence compileBlock(final Block2 b) {
+  protected CharSequence _compileExpr(final Block2 b) {
     StringConcatenation _builder = new StringConcatenation();
     _builder.append("{");
     _builder.newLine();
@@ -199,7 +199,7 @@ public class PapljGenerator extends AbstractGenerator {
       EList<Expr> _exprs = b.getExprs();
       for(final Expr e : _exprs) {
         _builder.append("\t");
-        CharSequence _compileExpr = this.compileExpr(e);
+        Object _compileExpr = this.compileExpr(e);
         _builder.append(_compileExpr, "\t");
         _builder.append(";");
         _builder.newLineIfNotEmpty();
@@ -503,6 +503,8 @@ public class PapljGenerator extends AbstractGenerator {
       return _compileExpr((And)e);
     } else if (e instanceof Assignment) {
       return _compileExpr((Assignment)e);
+    } else if (e instanceof Block2) {
+      return _compileExpr((Block2)e);
     } else if (e instanceof Bool) {
       return _compileExpr((Bool)e);
     } else if (e instanceof Cast) {

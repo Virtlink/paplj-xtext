@@ -1,5 +1,8 @@
 program paplj.lang
 
+class Any {
+}
+
 class Num {
 }
 
