@@ -15,7 +15,7 @@ class PapljTypeConformance {
 		c.ancestors.contains(ancestor)
 	}
 	
-	def isConformant(Type from, Type to) {
+	def boolean isConformant(Type from, Type to) {
 		from == PapljTypeProvider.NullT ||
 		from == to ||
 		isConformantLibraryType(from, to) ||
@@ -23,7 +23,7 @@ class PapljTypeConformance {
 		from.isSubclassOf(to)
 	}
 	
-	def isConformantLibraryType(Type c1, Type c2) {
+	def boolean isConformantLibraryType(Type c1, Type c2) {
 		(c1.isNum && c2.isNum) ||
 		(c1.isBool && c2.isBool) ||
 		(c1.isAny && c2.isAny)
